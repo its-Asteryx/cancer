@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosa - Dépistage du Cancer du Sein</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary: #e91e63;
+            --primary-dark: #c2185b;
+            --secondary: #9c27b0;
+            --secondary-dark: #7b1fa2;
+            --accent: #ff4081;
+            --light: #fce4ec;
+            --dark: #880e4f;
+            --gray: #9e9e9e;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+            --shadow: 0 10px 30px rgba(233, 30, 99, 0.15);
+            --radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .logo-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(233, 30, 99, 0.2);
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(156, 39, 176, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0;
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Features Section */
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 50px;
+            color: var(--dark);
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .features {
+            padding: 80px 0;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 80px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--light);
+            padding: 30px;
+            border-radius: var(--radius);
+            text-align: center;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 30px;
+        }
+
+        .feature-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .feature-desc {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Test Section */
+        .test-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .test-card {
+            background: white;
+            padding: 50px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-title {
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: var(--dark);
+        }
+
+        .test-desc {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .test-start-btn {
+            font-size: 18px;
+            padding: 16px 40px;
+        }
+
+        /* Auth Forms */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .auth-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .auth-form {
+            background: white;
+            padding: 40px;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            transform: translateY(30px);
+            transition: var(--transition);
+        }
+
+        .auth-overlay.active .auth-form {
+            transform: translateY(0);
+        }
+
+        .auth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: var(--dark);
+        }
+
+        .close-auth {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-auth:hover {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-footer {
+            margin-top: 25px;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .form-footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Test Form */
+        .question-container {
+            text-align: left;
+        }
+
+        .question {
+            background: var(--light);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .option:hover {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .option.selected {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+
+        .test-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        /* Results */
+        .results-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .risk-level {
+            font-size: 32px;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: var(--radius);
+        }
+
+        .risk-low {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+
+        .risk-medium {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ef6c00;
+        }
+
+        .risk-high {
+            background: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+        }
+
+        .risk-percentage {
+            font-size: 72px;
+            font-weight: 700;
+            margin: 30px 0;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .recommendations {
+            text-align: left;
+            background: var(--light);
+            padding: 30px;
+            border-radius: var(--radius);
+            margin-top: 40px;
+        }
+
+        .recommendations h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .recommendations ul {
+            padding-left: 20px;
+        }
+
+        .recommendations li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        .footer-logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .footer-desc {
+            color: #f8bbd9;
+            max-width: 300px;
+            line-height: 1.6;
+        }
+
+        .footer-links h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #f8bbd9;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f8bbd9;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .test-card, .auth-form {
+                padding: 30px 20px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .feature-card {
+                padding: 20px;
+            }
+            
+            .logo-image {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+            
+            .footer-logo {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .footer-logo-text {
+                font-size: 24px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        .logo-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+        
+        .status-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+            border: 1px solid #c62828;
+        }
+        
+        .firebase-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .firebase-connected {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        
+        .firebase-disconnected {
+            background: rgba(244, 67, 54, 0.9);
+        }
+        
+        .rosa-flower {
+            color: var(--primary);
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase Status Indicator -->
+    <div id="firebase-status" class="firebase-status hidden">
+        <i class="fas fa-circle"></i> <span>Firebase</span>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo-container">
+                    <!-- VOTRE LOGO ICI -->
+                    <img src="C:\Users\ASUS\Desktop\travail\594408801_2058712874915001_675741426399387074_n.jpg" 
+                         alt="Rosa Logo" 
+                         class="logo-image"
+                         onerror="this.style.display='none'; document.getElementById('logo-placeholder').style.display='flex';">
+                    <div id="logo-placeholder" class="logo-placeholder" style="display: none;">
+                        <i class="fas fa-rose rosa-flower"></i>
+                    </div>
+                    <div class="logo-text"><span>Rosa</span></div>
+                </a>
+                <div class="nav-links">
+                    <a href="#home">Accueil</a>
+                    <a href="#features">Fonctionnalités</a>
+                    <a href="#test">Test de Dépistage</a>
+                    <a href="#about">À Propos</a>
+                </div>
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" id="signin-btn">Connexion</button>
+                    <button class="btn btn-primary" id="signup-btn">Inscription</button>
+                </div>
+                <div class="user-menu hidden" id="user-menu">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <button class="btn btn-outline" id="logout-btn">Déconnexion</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home">
+        <div class="container">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Rosa - Dépistage Précoce du Cancer du Sein</h1>
+                    <p class="hero-subtitle">
+                        Rosa utilise un algorithme avancé pour évaluer vos symptômes et vous donner une estimation de risque. 
+                        Notre outil n'est pas un diagnostic médical mais un guide pour vous aider à prendre les bonnes décisions.
+                    </p>
+                    <button class="btn btn-primary test-start-btn" id="hero-test-btn">
+                        <i class="fas fa-stethoscope"></i> Commencer le Test
+                    </button>
+                </div>
+                <div class="hero-image">
+                    <div style="width: 100%; height: 400px; background: var(--gradient); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                        <i class="fas fa-rose" style="font-size: 150px; opacity: 0.8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <div class="features">
+                <h2 class="section-title">Pourquoi choisir <span>Rosa</span> ?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Confidentialité Totale</h3>
+                        <p class="feature-desc">
+                            Vos données sont cryptées et stockées en toute sécurité. Nous respectons votre vie privée.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="feature-title">Algorithme Intelligent</h3>
+                        <p class="feature-desc">
+                            Notre algorithme analyse les symptômes avec précision pour vous donner une estimation fiable.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comment-medical"></i>
+                        </div>
+                        <h3 class="feature-title">Recommandations Personnalisées</h3>
+                        <p class="feature-desc">
+                            Recevez des conseils adaptés à votre situation et des étapes à suivre.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Test Section -->
+    <section id="test">
+        <div class="container">
+            <div class="test-section">
+                <h2 class="section-title">Test de <span>Dépistage</span></h2>
+                <div class="test-card" id="test-intro">
+                    <h3 class="test-title">Évaluez vos symptômes</h3>
+                    <p class="test-desc">
+                        Ce test vous permet d'évaluer vos symptômes actuels. Répondez honnêtement à toutes les questions pour obtenir une estimation précise de votre risque. 
+                        Le test prend environ 5 minutes.
+                    </p>
+                    <button class="btn btn-primary test-start-btn" id="start-test-btn">
+                        <i class="fas fa-play-circle"></i> Commencer le Test
+                    </button>
+                    <p style="margin-top: 20px; color: var(--gray); font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> Ce test ne remplace pas une consultation médicale.
+                    </p>
+                </div>
+                
+                <!-- Test Form (Hidden by default) -->
+                <div class="test-card hidden" id="test-form-container">
+                    <div class="question-container" id="question-container">
+                        <!-- Questions will be dynamically inserted here -->
+                    </div>
+                    <div class="test-navigation">
+                        <button class="btn btn-outline" id="prev-btn">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <div>
+                            <span id="current-question">1</span> / <span id="total-questions">10</span>
+                        </div>
+                        <button class="btn btn-primary" id="next-btn">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="btn btn-primary hidden" id="submit-test">
+                            <i class="fas fa-paper-plane"></i> Soumettre
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Results (Hidden by default) -->
+                <div class="test-card hidden" id="results-container">
+                    <div class="results-container">
+                        <h2 class="test-title">Résultats de votre Test</h2>
+                        <div class="risk-percentage" id="risk-percentage">0%</div>
+                        <div class="risk-level" id="risk-level">Risque Faible</div>
+                        
+                        <div class="recommendations">
+                            <h3><i class="fas fa-heartbeat"></i> Recommandations</h3>
+                            <ul id="recommendations-list">
+                                <!-- Recommendations will be dynamically inserted here -->
+                            </ul>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="retake-test" style="margin-top: 30px;">
+                            <i class="fas fa-redo"></i> Refaire le Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Authentication Forms -->
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-form" id="signin-form">
+            <div class="auth-header">
+                <h2 class="auth-title">Connexion</h2>
+                <button class="close-auth" id="close-signin">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="signin-status" class="status-message hidden"></div>
+            <form id="signin-form-data">
+                <div class="form-group">
+                    <label for="signin-email">Adresse Email</label>
+                    <input type="email" id="signin-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signin-password">Mot de Passe</label>
+                    <input type="password" id="signin-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Se Connecter
+                </button>
+            </form>
+            <div class="form-footer">
+                <p>Pas encore de compte ? <a href="#" id="switch-to-signup">S'inscrire</a></p>
+            </div>
+        </div>
+        
+        <div class="auth-form hidden" id="signup-form">
+            <div class="auth-header">
+                <h2 class="auth-title">Inscription</h2>
+                <button class="close-auth" id="close-signup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="signup-status" class="status-message hidden"></div>
+            <form id="signup-form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-firstname">Prénom</label>
+                        <input type="text" id="signup-firstname" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-lastname">Nom</label>
+                        <input type="text" id="signup-lastname" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Adresse Email</label>
+                    <input type="email" id="signup-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-phone">Numéro de Téléphone</label>
+                    <input type="tel" id="signup-phone" class="form-control" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-birthdate">Date de Naissance</label>
+                        <input type="date" id="signup-birthdate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-gender">Sexe</label>
+                        <select id="signup-gender" class="form-control" required>
+                            <option value="">Sélectionner</option>
+                            <option value="female">Féminin</option>
+                            <option value="male">Masculin</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Mot de Passe</label>
+                    <input type="password" id="signup-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirmer le Mot de Passe</label>
+                    <input type="password" id="signup-confirm-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </button>
+            </form>
+            <div class="form-footer">
+                <p>Déjà un compte ? <a href="#" id="switch-to-signin">Se Connecter</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="about">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <div class="footer-logo-container">
+                        <!-- LOGO DU FOOTER ICI -->
+                        <img src="C:\Users\ASUS\Desktop\travail\594408801_2058712874915001_675741426399387074_n.jpg" 
+                             alt="Rosa Logo" 
+                             class="footer-logo"
+                             onerror="this.style.display='none'; document.getElementById('footer-logo-placeholder').style.display='flex';">
+                        <div id="footer-logo-placeholder" style="width: 70px; height: 70px; border-radius: 50%; background: var(--gradient); display: none; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                            <i class="fas fa-rose"></i>
+                        </div>
+                        <div class="footer-logo-text">Rosa</div>
+                    </div>
+                    <p class="footer-desc">
+                        Un outil innovant pour le dépistage précoce du cancer du sein. 
+                        Notre mission est de sensibiliser et d'aider à la détection des symptômes.
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <h4>Liens Rapides</h4>
+                    <ul>
+                        <li><a href="#home">Accueil</a></li>
+                        <li><a href="#features">Fonctionnalités</a></li>
+                        <li><a href="#test">Test de Dépistage</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> contact@rosa-app.com</li>
+                        <li><i class="fas fa-phone"></i> +33 1 23 45 67 89</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Paris, France</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Rosa. Tous droits réservés. Ce site est à but éducatif seulement.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =============================================
+        // CONFIGURATION FIREBASE - VOTRE CONFIGURATION
+        // =============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBP3j80WVBSwafsyoHEvBKJcNF1tV8h8Ik",
+            authDomain: "rosa-f3036.firebaseapp.com",
+            projectId: "rosa-f3036",
+            storageBucket: "rosa-f3036.firebasestorage.app",
+            messagingSenderId: "464151104884",
+            appId: "1:464151104884:web:6370381eb81d8c7d04b021"
+        };
+
+        // =============================================
+        // INITIALISATION FIREBASE
+        // =============================================
+        let auth, db;
+        let firebaseInitialized = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            firebaseInitialized = true;
+            console.log("✅ Firebase initialisé avec succès");
+            
+            // Afficher le statut Firebase
+            const firebaseStatus = document.getElementById('firebase-status');
+            firebaseStatus.classList.remove('hidden', 'firebase-disconnected');
+            firebaseStatus.classList.add('firebase-connected');
+            firebaseStatus.innerHTML = '<i class="fas fa-check-circle"></i> <span>Firebase Connecté</span>';
+            
+        } catch (error) {
+            console.error("❌ Erreur d'initialisation Firebase:", error);
+            firebaseInitialized = false;
+            
+            const firebaseStatus = document.getElementById('firebase-status');
+            firebaseStatus.classList.remove('hidden');
+            firebaseStatus.classList.add('firebase-disconnected');
+            firebaseStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>Firebase Non Connecté</span>';
+        }
+
+        // =============================================
+        // DOM ELEMENTS
+        // =============================================
+        const signinBtn = document.getElementById('signin-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authOverlay = document.getElementById('auth-overlay');
+        const signinForm = document.getElementById('signin-form');
+        const signupForm = document.getElementById('signup-form');
+        const closeSignin = document.getElementById('close-signin');
+        const closeSignup = document.getElementById('close-signup');
+        const switchToSignup = document.getElementById('switch-to-signup');
+        const switchToSignin = document.getElementById('switch-to-signin');
+        const signinFormData = document.getElementById('signin-form-data');
+        const signupFormData = document.getElementById('signup-form-data');
+        const userMenu = document.getElementById('user-menu');
+        const userAvatar = document.getElementById('user-avatar');
+        const authButtons = document.querySelector('.auth-buttons');
+        const heroTestBtn = document.getElementById('hero-test-btn');
+        const startTestBtn = document.getElementById('start-test-btn');
+        const testIntro = document.getElementById('test-intro');
+        const testFormContainer = document.getElementById('test-form-container');
+        const questionContainer = document.getElementById('question-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitTestBtn = document.getElementById('submit-test');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const resultsContainer = document.getElementById('results-container');
+        const retakeTestBtn = document.getElementById('retake-test');
+        const riskPercentage = document.getElementById('risk-percentage');
+        const riskLevel = document.getElementById('risk-level');
+        const recommendationsList = document.getElementById('recommendations-list');
+
+        // Test Questions
+        const testQuestions = [
+            {
+                id: 1,
+                text: "Avez-vous remarqué une masse nouvelle dans le sein ou l'aisselle, ou un épaississement du tissu mammaire ?",
+                options: [
+                    { text: "Non, aucune masse", value: 0 },
+                    { text: "Possible épaississement", value: 3 },
+                    { text: "Masse palpable récente", value: 6 },
+                    { text: "Masse importante et ferme", value: 10 }
+                ]
+            },
+            {
+                id: 2,
+                text: "Avez-vous observé un changement de la taille ou de la forme du sein ?",
+                options: [
+                    { text: "Non, aucun changement", value: 0 },
+                    { text: "Légère différence", value: 2 },
+                    { text: "Changement notable", value: 5 },
+                    { text: "Changement important", value: 8 }
+                ]
+            },
+            {
+                id: 3,
+                text: "Avez-vous remarqué des changements de la peau du sein (retrait, rugosité, plis) ?",
+                options: [
+                    { text: "Non, peau normale", value: 0 },
+                    { text: "Légère rugosité", value: 2 },
+                    { text: "Peau avec plis ou fossettes", value: 6 },
+                    { text: "Peau d'orange évidente", value: 9 }
+                ]
+            },
+            {
+                id: 4,
+                text: "Avez-vous observé une rougeur, desquamation ou épaississement de la peau autour du sein ou du mamelon ?",
+                options: [
+                    { text: "Non, rien d'anormal", value: 0 },
+                    { text: "Légère rougeur", value: 2 },
+                    { text: "Rougeur persistante", value: 5 },
+                    { text: "Desquamation/épaississement", value: 8 }
+                ]
+            },
+            {
+                id: 5,
+                text: "Avez-vous remarqué un écoulement du mamelon (surtout s'il est sanglant) ?",
+                options: [
+                    { text: "Non, aucun écoulement", value: 0 },
+                    { text: "Écoulement clair", value: 1 },
+                    { text: "Écoulement coloré", value: 4 },
+                    { text: "Écoulement sanglant", value: 10 }
+                ]
+            },
+            {
+                id: 6,
+                text: "Avez-vous observé une inversion du mamelon (retour du mamelon vers l'intérieur) ?",
+                options: [
+                    { text: "Non, normal", value: 0 },
+                    { text: "Légère rétraction", value: 2 },
+                    { text: "Inversion récente", value: 6 },
+                    { text: "Inversion importante", value: 9 }
+                ]
+            },
+            {
+                id: 7,
+                text: "Ressentez-vous une douleur persistante au sein ou à l'aisselle ?",
+                options: [
+                    { text: "Non, aucune douleur", value: 0 },
+                    { text: "Douleur occasionnelle", value: 1 },
+                    { text: "Douleur fréquente", value: 3 },
+                    { text: "Douleur constante", value: 6 }
+                ]
+            },
+            {
+                id: 8,
+                text: "Avez-vous remarqué une modification de la sensibilité des seins ?",
+                options: [
+                    { text: "Non, sensibilité normale", value: 0 },
+                    { text: "Légère modification", value: 1 },
+                    { text: "Changement notable", value: 3 },
+                    { text: "Hypersensibilité/douleur", value: 5 }
+                ]
+            },
+            {
+                id: 9,
+                text: "Avez-vous eu de la fièvre avec rougeur importante du sein ou douleur persistante ?",
+                options: [
+                    { text: "Non, pas de fièvre", value: 0 },
+                    { text: "Fièvre légère", value: 2 },
+                    { text: "Fièvre avec rougeur", value: 6 },
+                    { text: "Fièvre élevée avec douleur", value: 9 }
+                ]
+            },
+            {
+                id: 10,
+                text: "Une masse est-elle apparue soudainement et augmente-t-elle rapidement ?",
+                options: [
+                    { text: "Non", value: 0 },
+                    { text: "Masse stable", value: 3 },
+                    { text: "Légère augmentation", value: 6 },
+                    { text: "Augmentation rapide", value: 10 }
+                ]
+            }
+        ];
+
+        // Test State
+        let currentQuestion = 0;
+        let answers = new Array(testQuestions.length).fill(null);
+        let user = null;
+
+        // =============================================
+        // INITIALISATION DE L'APPLICATION
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            totalQuestionsSpan.textContent = testQuestions.length;
+            
+            // Vérifier l'état d'authentification
+            if (firebaseInitialized) {
+                auth.onAuthStateChanged((firebaseUser) => {
+                    if (firebaseUser) {
+                        user = firebaseUser;
+                        showUserMenu();
+                        loadUserData();
+                        console.log("✅ Utilisateur connecté:", user.email);
+                    } else {
+                        user = null;
+                        hideUserMenu();
+                        console.log("ℹ️ Aucun utilisateur connecté");
+                    }
+                });
+            }
+            
+            // Event Listeners
+            signinBtn.addEventListener('click', () => showAuthForm('signin'));
+            signupBtn.addEventListener('click', () => showAuthForm('signup'));
+            closeSignin.addEventListener('click', () => hideAuthForm());
+            closeSignup.addEventListener('click', () => hideAuthForm());
+            switchToSignup.addEventListener('click', (e) => {
+                e.preventDefault();
+                showAuthForm('signup');
+            });
+            switchToSignin.addEventListener('click', (e) => {
+                e.preventDefault();
+                showAuthForm('signin');
+            });
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Form submissions
+            signinFormData.addEventListener('submit', handleSignIn);
+            signupFormData.addEventListener('submit', handleSignUp);
+            
+            // Test buttons
+            heroTestBtn.addEventListener('click', startTest);
+            startTestBtn.addEventListener('click', startTest);
+            prevBtn.addEventListener('click', showPreviousQuestion);
+            nextBtn.addEventListener('click', showNextQuestion);
+            submitTestBtn.addEventListener('click', submitTest);
+            retakeTestBtn.addEventListener('click', resetTest);
+            
+            // Load first question
+            loadQuestion(0);
+        });
+
+        // =============================================
+        // FONCTIONS D'AUTHENTIFICATION
+        // =============================================
+        function showAuthForm(formType) {
+            authOverlay.classList.add('active');
+            if (formType === 'signin') {
+                signinForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signupForm.classList.remove('hidden');
+                signinForm.classList.add('hidden');
+            }
+        }
+
+        function hideAuthForm() {
+            authOverlay.classList.remove('active');
+            document.getElementById('signin-status').classList.add('hidden');
+            document.getElementById('signup-status').classList.add('hidden');
+        }
+
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            
+            const statusElement = document.getElementById('signin-status');
+            
+            if (!firebaseInitialized) {
+                statusElement.textContent = "Firebase n'est pas configuré correctement";
+                statusElement.className = "status-message status-error";
+                statusElement.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                hideAuthForm();
+                showNotification('Connexion réussie!', 'success');
+            } catch (error) {
+                statusElement.textContent = 'Erreur: ' + error.message;
+                statusElement.className = "status-message status-error";
+                statusElement.classList.remove('hidden');
+            }
+        }
+
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const firstname = document.getElementById('signup-firstname').value;
+            const lastname = document.getElementById('signup-lastname').value;
+            const email = document.getElementById('signup-email').value;
+            const phone = document.getElementById('signup-phone').value;
+            const birthdate = document.getElementById('signup-birthdate').value;
+            const gender = document.getElementById('signup-gender').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            
+            const statusElement = document.getElementById('signup-status');
+            
+            if (password !== confirmPassword) {
+                statusElement.textContent = 'Les mots de passe ne correspondent pas';
+                statusElement.className = "status-message status-error";
+                statusElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (!firebaseInitialized) {
+                statusElement.textContent = "Firebase n'est pas configuré correctement";
+                statusElement.className = "status-message status-error";
+                statusElement.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Sauvegarder les données utilisateur dans Firestore
+                await db.collection('users').doc(user.uid).set({
+                    firstname,
+                    lastname,
+                    email,
+                    phone,
+                    birthdate,
+                    gender,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                hideAuthForm();
+                showNotification('Inscription réussie!', 'success');
+            } catch (error) {
+                statusElement.textContent = 'Erreur: ' + error.message;
+                statusElement.className = "status-message status-error";
+                statusElement.classList.remove('hidden');
+            }
+        }
+
+        async function handleLogout() {
+            if (!firebaseInitialized) return;
+            
+            try {
+                await auth.signOut();
+                showNotification('Déconnexion réussie', 'success');
+            } catch (error) {
+                showNotification('Erreur de déconnexion: ' + error.message, 'error');
+            }
+        }
+
+        function showUserMenu() {
+            authButtons.classList.add('hidden');
+            userMenu.classList.remove('hidden');
+            if (user && user.email) {
+                const initial = user.email.charAt(0).toUpperCase();
+                userAvatar.textContent = initial;
+            }
+        }
+
+        function hideUserMenu() {
+            authButtons.classList.remove('hidden');
+            userMenu.classList.add('hidden');
+        }
+
+        async function loadUserData() {
+            if (!user || !firebaseInitialized) return;
+            
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    console.log('Données utilisateur chargées:', userData);
+                }
+            } catch (error) {
+                console.error('Erreur chargement données:', error);
+            }
+        }
+
+        // =============================================
+        // FONCTIONS DU TEST
+        // =============================================
+        function startTest() {
+            if (!user) {
+                showNotification('Veuillez vous connecter pour faire le test', 'error');
+                showAuthForm('signin');
+                return;
+            }
+            
+            testIntro.classList.add('hidden');
+            testFormContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            
+            currentQuestion = 0;
+            loadQuestion(currentQuestion);
+            updateNavigationButtons();
+        }
+
+        function loadQuestion(index) {
+            questionContainer.innerHTML = '';
+            const question = testQuestions[index];
+            
+            const questionElement = document.createElement('div');
+            questionElement.className = 'question';
+            questionElement.innerHTML = `
+                <div class="question-text">${question.text}</div>
+                <div class="options">
+                    ${question.options.map((option, i) => `
+                        <div class="option ${answers[index] === i ? 'selected' : ''}" 
+                             data-index="${i}" 
+                             data-value="${option.value}">
+                            ${option.text}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Add event listeners to options
+            questionElement.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Deselect all options
+                    questionElement.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Select clicked option
+                    this.classList.add('selected');
+                    answers[index] = parseInt(this.getAttribute('data-index'));
+                    
+                    // Enable next button
+                    if (index < testQuestions.length - 1) {
+                        nextBtn.disabled = false;
+                    } else {
+                        submitTestBtn.classList.remove('hidden');
+                        nextBtn.classList.add('hidden');
+                    }
+                });
+            });
+            
+            questionContainer.appendChild(questionElement);
+            currentQuestionSpan.textContent = index + 1;
+            updateNavigationButtons();
+        }
+
+        function showPreviousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion(currentQuestion);
+            }
+        }
+
+        function showNextQuestion() {
+            if (answers[currentQuestion] === null) {
+                showNotification('Veuillez sélectionner une réponse', 'error');
+                return;
+            }
+            
+            if (currentQuestion < testQuestions.length - 1) {
+                currentQuestion++;
+                loadQuestion(currentQuestion);
+            }
+        }
+
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.disabled = answers[currentQuestion] === null;
+            
+            if (currentQuestion === testQuestions.length - 1) {
+                nextBtn.classList.add('hidden');
+                if (answers[currentQuestion] !== null) {
+                    submitTestBtn.classList.remove('hidden');
+                }
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitTestBtn.classList.add('hidden');
+            }
+        }
+
+        async function submitTest() {
+            if (answers[currentQuestion] === null) {
+                showNotification('Veuillez répondre à cette question', 'error');
+                return;
+            }
+            
+            // Calculate risk score
+            let totalScore = 0;
+            answers.forEach((answerIndex, i) => {
+                if (answerIndex !== null) {
+                    totalScore += testQuestions[i].options[answerIndex].value;
+                }
+            });
+            
+            // Calculate percentage (max score is 86)
+            const maxScore = 86;
+            const riskPercentageValue = Math.min(100, Math.round((totalScore / maxScore) * 100));
+            
+            // Determine risk level
+            let riskLevelText, riskClass;
+            if (riskPercentageValue < 20) {
+                riskLevelText = "Risque Faible";
+                riskClass = "risk-low";
+            } else if (riskPercentageValue < 50) {
+                riskLevelText = "Risque Moyen";
+                riskClass = "risk-medium";
+            } else {
+                riskLevelText = "Risque Élevé";
+                riskClass = "risk-high";
+            }
+            
+            // Show results
+            testFormContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            
+            riskPercentage.textContent = `${riskPercentageValue}%`;
+            riskLevel.textContent = riskLevelText;
+            riskLevel.className = `risk-level ${riskClass}`;
+            
+            // Generate recommendations
+            let recommendations = [];
+            if (riskPercentageValue < 20) {
+                recommendations = [
+                    "Continuez vos auto-examens mensuels des seins",
+                    "Consultez un médecin pour un examen clinique annuel",
+                    "Maintenez un mode de vie sain avec une alimentation équilibrée"
+                ];
+            } else if (riskPercentageValue < 50) {
+                recommendations = [
+                    "Consultez un médecin dans les semaines à venir pour un examen approfondi",
+                    "Envisagez une mammographie de dépistage",
+                    "Notez l'évolution de vos symptômes",
+                    "Évitez l'automédication"
+                ];
+            } else {
+                recommendations = [
+                    "<strong>Consultez un médecin dès que possible</strong>",
+                    "Prévoyez une mammographie et/ou une échographie mammaire",
+                    "Demandez une consultation avec un spécialiste (gynécologue ou sénologue)",
+                    "Notez tous vos symptômes et leur évolution",
+                    "Évitez tout retard dans la consultation médicale"
+                ];
+            }
+            
+            recommendationsList.innerHTML = recommendations.map(rec => `<li>${rec}</li>`).join('');
+            
+            // Save test results to Firestore
+            if (user && firebaseInitialized) {
+                try {
+                    await db.collection('tests').add({
+                        userId: user.uid,
+                        score: totalScore,
+                        percentage: riskPercentageValue,
+                        riskLevel: riskLevelText,
+                        answers: answers,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log("✅ Résultats du test sauvegardés");
+                } catch (error) {
+                    console.error('❌ Erreur sauvegarde résultats:', error);
+                }
+            }
+        }
+
+        function resetTest() {
+            answers = new Array(testQuestions.length).fill(null);
+            currentQuestion = 0;
+            resultsContainer.classList.add('hidden');
+            testIntro.classList.remove('hidden');
+        }
+
+        // =============================================
+        // FONCTIONS UTILITAIRES
+        // =============================================
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 600;
+                z-index: 3000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, var(--success), #2e7d32)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, var(--danger), #c62828)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS for notification animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
